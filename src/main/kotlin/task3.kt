@@ -2,8 +2,6 @@ import java.util.*
 
 // ШИФРВИЖЕНЕР
 // КОД
-// НЪРЁУЕЬЦЙЪВ
-// ГЛМЫЕБСЗЁПУ
 
 fun main() {
     val scanner = Scanner(System.`in`)
@@ -31,13 +29,13 @@ fun main() {
     println("Текст: $originalMessage")
     println("Ключ:  $keyLong")
 
-    // Шифрование и вывод зашифрованного сообщения и шифровальной таблицы
-    val encryptedMessage = vigenereEncrypt(originalMessage, key, vigenereTable)
-    println("Итог:  $encryptedMessage")
-
-    // Расшифровка и вывод расшифрованного сообщения
-    val decryptedMessage = vigenereDecrypt(encryptedMessage, key, vigenereTable)
-    println("Расшифрованное сообщение: $decryptedMessage\n")
+    // Шифрование и вывод зашифрованного сообщения
+    val encryptedMessage = if (tableChoice == 1) {
+        regularVigenereEncrypt(originalMessage, key)
+    } else {
+        vigenereEncryptWithTable(originalMessage, key, vigenereTable)
+    }
+    println("Итог:  $encryptedMessage\n")
 
     println("Шифровальная таблица:")
     printVigenereTable(vigenereTable)
@@ -59,35 +57,39 @@ fun createDefaultVigenereTable(): Array<CharArray> {
 
 fun createRandomVigenereTable(): Array<CharArray> {
     val alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+
     return Array(33) { alphabet.toCharArray().toMutableList().shuffled().toCharArray() }
 }
 
-fun vigenereEncrypt(message: String, key: String, table: Array<CharArray>): String {
-    val encryptedMessage = StringBuilder()
+fun regularVigenereEncrypt(message: String, key: String): String {
+    val alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+    val encryptedMessage = mutableListOf<Char>()
+
+    for (i in message.indices) {
+        val messageChar = message[i]
+        val keyChar = key[i % key.length]
+        val begin = alphabet.indexOf(messageChar)
+        val offset = alphabet.indexOf(keyChar)
+        val encryptedChar = alphabet[(begin + offset) % 33]
+        encryptedMessage.add(encryptedChar)
+    }
+
+    return encryptedMessage.joinToString("")
+}
+
+fun vigenereEncryptWithTable(message: String, key: String, table: Array<CharArray>): String {
+    val encryptedMessage = mutableListOf<Char>()
 
     for (i in message.indices) {
         val messageChar = message[i]
         val keyChar = key[i % key.length]
         val row = table[0].indexOf(keyChar)
         val col = table[row].indexOf(messageChar)
-        encryptedMessage.append(table[0][col])
+        val encryptedChar = table[0][col]
+        encryptedMessage.add(encryptedChar)
     }
 
-    return encryptedMessage.toString()
-}
-
-fun vigenereDecrypt(encryptedMessage: String, key: String, table: Array<CharArray>): String {
-    val decryptedMessage = StringBuilder()
-
-    for (i in encryptedMessage.indices) {
-        val encryptedChar = encryptedMessage[i]
-        val keyChar = key[i % key.length]
-        val row = table[0].indexOf(keyChar)
-        val col = table[row].indexOf(encryptedChar)
-        decryptedMessage.append(table[0][col])
-    }
-
-    return decryptedMessage.toString()
+    return encryptedMessage.joinToString("")
 }
 
 fun printVigenereTable(table: Array<CharArray>) {
